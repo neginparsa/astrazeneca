@@ -18,19 +18,20 @@
   ],
   "pages": [
     {
+      "name": "b2c3d4e5",
       "displayName": "Patient Journey",
       "layout": [
         {
           "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
           "widget": {
             "name": "hdr10001",
-            "textbox_spec": "# Patient Journey & Continuity of Care\n*Tokenized Gold layer · proactive outreach for therapy discontinuation risk*"
+            "textbox_spec": "# Patient Journey and Continuity of Care\nTokenized Gold layer for therapy discontinuation outreach"
           }
         },
         {
           "position": { "x": 0, "y": 1, "width": 3, "height": 5 },
           "widget": {
-            "name": "pie10001",
+            "name": "bar10001",
             "queries": [
               {
                 "name": "main_query",
@@ -46,24 +47,21 @@
             ],
             "spec": {
               "version": 3,
-              "widgetType": "pie",
+              "widgetType": "bar",
               "encodings": {
-                "angle": {
+                "x": {
+                  "fieldName": "on_therapy",
+                  "displayName": "On therapy",
+                  "scale": { "type": "categorical" }
+                },
+                "y": {
                   "fieldName": "sum(patient_count)",
                   "displayName": "Patients",
                   "scale": { "type": "quantitative" }
                 },
-                "color": {
-                  "fieldName": "on_therapy",
-                  "displayName": "On therapy",
-                  "scale": { "type": "categorical" },
-                  "legend": { "position": "right" }
-                },
                 "label": { "show": true }
               },
-              "mark": {
-                "colors": ["#00843D", "#830051"]
-              },
+              "mark": { "colors": ["#00843D", "#830051"] },
               "frame": { "showTitle": true, "title": "On Therapy vs Discontinued" }
             }
           }
@@ -71,7 +69,7 @@
         {
           "position": { "x": 3, "y": 1, "width": 3, "height": 5 },
           "widget": {
-            "name": "bar10001",
+            "name": "bar10002",
             "queries": [
               {
                 "name": "main_query",
@@ -107,17 +105,15 @@
                   "legend": { "position": "bottom" }
                 }
               },
-              "mark": {
-                "colors": ["#00843D", "#830051"]
-              },
-              "frame": { "showTitle": true, "title": "Patients by Therapy & Status" }
+              "mark": { "colors": ["#00843D", "#830051"] },
+              "frame": { "showTitle": true, "title": "Patients by Therapy and Status" }
             }
           }
         },
         {
           "position": { "x": 0, "y": 6, "width": 3, "height": 5 },
           "widget": {
-            "name": "hist1001",
+            "name": "bar10003",
             "queries": [
               {
                 "name": "main_query",
@@ -147,14 +143,14 @@
                 }
               },
               "mark": { "colors": ["#003865"] },
-              "frame": { "showTitle": true, "title": "Days Since Last Fill Distribution" }
+              "frame": { "showTitle": true, "title": "Days Since Last Fill" }
             }
           }
         },
         {
           "position": { "x": 3, "y": 6, "width": 3, "height": 5 },
           "widget": {
-            "name": "bar10002",
+            "name": "bar10004",
             "queries": [
               {
                 "name": "main_query",
@@ -200,12 +196,12 @@
                   "datasetName": "p8b2risk",
                   "disaggregated": true,
                   "fields": [
-                    { "name": "patient_token", "expression": "`patient_token`" },
                     { "name": "therapy_code", "expression": "`therapy_code`" },
-                    { "name": "last_fill_date", "expression": "`last_fill_date`" },
                     { "name": "days_since_last_fill", "expression": "`days_since_last_fill`" },
+                    { "name": "last_fill_date", "expression": "`last_fill_date`" },
                     { "name": "pa_denial_count", "expression": "`pa_denial_count`" },
-                    { "name": "on_therapy", "expression": "`on_therapy`" }
+                    { "name": "on_therapy", "expression": "`on_therapy`" },
+                    { "name": "patient_token", "expression": "`patient_token`" }
                   ]
                 }
               }
@@ -213,17 +209,52 @@
             "spec": {
               "version": 2,
               "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "withRowNumber": false,
               "encodings": {
                 "columns": [
-                  { "fieldName": "therapy_code", "displayName": "Therapy" },
-                  { "fieldName": "days_since_last_fill", "displayName": "Days since fill" },
-                  { "fieldName": "last_fill_date", "displayName": "Last fill" },
-                  { "fieldName": "pa_denial_count", "displayName": "PA denials" },
-                  { "fieldName": "on_therapy", "displayName": "On therapy" },
-                  { "fieldName": "patient_token", "displayName": "Patient token" }
+                  {
+                    "fieldName": "therapy_code",
+                    "displayName": "Therapy",
+                    "alignContent": "left",
+                    "displayAs": "string"
+                  },
+                  {
+                    "fieldName": "days_since_last_fill",
+                    "displayName": "Days since fill",
+                    "alignContent": "right",
+                    "displayAs": "number"
+                  },
+                  {
+                    "fieldName": "last_fill_date",
+                    "displayName": "Last fill",
+                    "alignContent": "left",
+                    "displayAs": "datetime"
+                  },
+                  {
+                    "fieldName": "pa_denial_count",
+                    "displayName": "PA denials",
+                    "alignContent": "right",
+                    "displayAs": "number"
+                  },
+                  {
+                    "fieldName": "on_therapy",
+                    "displayName": "On therapy",
+                    "alignContent": "left",
+                    "displayAs": "string"
+                  },
+                  {
+                    "fieldName": "patient_token",
+                    "displayName": "Patient token",
+                    "alignContent": "left",
+                    "displayAs": "string"
+                  }
                 ]
               },
-              "frame": { "showTitle": true, "title": "At-Risk Patients — Outreach Priority List" }
+              "frame": { "showTitle": true, "title": "At-Risk Patients — Outreach Priority" }
             }
           }
         }
