@@ -66,11 +66,16 @@ flowchart LR
 | 2 | Run **`notebooks/QUICKSTART_setup_and_run`** in Databricks (Serverless, Run all) |
 | 3 | Later: Path 2 in the same doc for full Azure + ADLS |
 
+## Dashboards
+
+Import **`dashboards/*.lvdash.json`** after running notebooks **QUICKSTART** and **08**. See [dashboards/README.md](dashboards/README.md).
+
 ## Notebooks (after QUICKSTART)
 
 | Order | Notebook | Purpose |
 |------:|----------|---------|
 | **—** | **`QUICKSTART_setup_and_run`** | **Start here — full batch pipeline, no Azure** |
+| 08 | `08_dashboard_views.py` | SQL views for AI/BI dashboards |
 | 00 | `00_setup_unity_catalog.py` | Catalog, schemas, table DDL |
 | 01 | `01_bronze_autoloader.py` | Auto Loader from ADLS landing → Bronze Delta |
 | 02 | `02_silver_streaming_merge.py` | Structured Streaming + incremental MERGE to Silver |

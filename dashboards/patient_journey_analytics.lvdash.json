@@ -1,0 +1,233 @@
+{
+  "datasets": [
+    {
+      "displayName": "Journey status",
+      "name": "p8b1jrn1",
+      "query": "SELECT therapy_code, on_therapy, patient_count, avg_days_since_fill, pa_denials FROM main.gold.v_dashboard_journey_status"
+    },
+    {
+      "displayName": "At-risk patients",
+      "name": "p8b2risk",
+      "query": "SELECT patient_token, therapy_code, last_fill_date, days_since_last_fill, pa_denial_count, hub_interactions_30d, on_therapy FROM main.gold.v_dashboard_at_risk"
+    },
+    {
+      "displayName": "Journey detail",
+      "name": "p8b3detl",
+      "query": "SELECT therapy_code, days_since_last_fill, on_therapy, pa_denial_count, hub_interactions_30d FROM main.gold.patient_journey"
+    }
+  ],
+  "pages": [
+    {
+      "displayName": "Patient Journey",
+      "layout": [
+        {
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
+          "widget": {
+            "name": "hdr10001",
+            "textbox_spec": "# Patient Journey & Continuity of Care\n*Tokenized Gold layer · proactive outreach for therapy discontinuation risk*"
+          }
+        },
+        {
+          "position": { "x": 0, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "pie10001",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "p8b1jrn1",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "on_therapy", "expression": "`on_therapy`" },
+                    { "name": "sum(patient_count)", "expression": "SUM(`patient_count`)" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "pie",
+              "encodings": {
+                "angle": {
+                  "fieldName": "sum(patient_count)",
+                  "displayName": "Patients",
+                  "scale": { "type": "quantitative" }
+                },
+                "color": {
+                  "fieldName": "on_therapy",
+                  "displayName": "On therapy",
+                  "scale": { "type": "categorical" },
+                  "legend": { "position": "right" }
+                },
+                "label": { "show": true }
+              },
+              "mark": {
+                "colors": ["#00843D", "#830051"]
+              },
+              "frame": { "showTitle": true, "title": "On Therapy vs Discontinued" }
+            }
+          }
+        },
+        {
+          "position": { "x": 3, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "bar10001",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "p8b1jrn1",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "therapy_code", "expression": "`therapy_code`" },
+                    { "name": "on_therapy", "expression": "`on_therapy`" },
+                    { "name": "sum(patient_count)", "expression": "SUM(`patient_count`)" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "therapy_code",
+                  "displayName": "Therapy",
+                  "scale": { "type": "categorical" }
+                },
+                "y": {
+                  "fieldName": "sum(patient_count)",
+                  "displayName": "Patients",
+                  "scale": { "type": "quantitative" }
+                },
+                "color": {
+                  "fieldName": "on_therapy",
+                  "displayName": "Status",
+                  "scale": { "type": "categorical" },
+                  "legend": { "position": "bottom" }
+                }
+              },
+              "mark": {
+                "colors": ["#00843D", "#830051"]
+              },
+              "frame": { "showTitle": true, "title": "Patients by Therapy & Status" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 6, "width": 3, "height": 5 },
+          "widget": {
+            "name": "hist1001",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "p8b3detl",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "days_since_last_fill", "expression": "`days_since_last_fill`" },
+                    { "name": "count(*)", "expression": "COUNT(`*`)" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "days_since_last_fill",
+                  "displayName": "Days since last fill",
+                  "scale": { "type": "quantitative" }
+                },
+                "y": {
+                  "fieldName": "count(*)",
+                  "displayName": "Patient count",
+                  "scale": { "type": "quantitative" }
+                }
+              },
+              "mark": { "colors": ["#003865"] },
+              "frame": { "showTitle": true, "title": "Days Since Last Fill Distribution" }
+            }
+          }
+        },
+        {
+          "position": { "x": 3, "y": 6, "width": 3, "height": 5 },
+          "widget": {
+            "name": "bar10002",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "p8b1jrn1",
+                  "disaggregated": false,
+                  "fields": [
+                    { "name": "therapy_code", "expression": "`therapy_code`" },
+                    { "name": "avg(avg_days_since_fill)", "expression": "AVG(`avg_days_since_fill`)" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "therapy_code",
+                  "displayName": "Therapy",
+                  "scale": { "type": "categorical" }
+                },
+                "y": {
+                  "fieldName": "avg(avg_days_since_fill)",
+                  "displayName": "Avg days since fill",
+                  "scale": { "type": "quantitative" }
+                },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#F0AB00"] },
+              "frame": { "showTitle": true, "title": "Avg Gap Since Last Fill by Therapy" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 11, "width": 6, "height": 5 },
+          "widget": {
+            "name": "tbl10001",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "p8b2risk",
+                  "disaggregated": true,
+                  "fields": [
+                    { "name": "patient_token", "expression": "`patient_token`" },
+                    { "name": "therapy_code", "expression": "`therapy_code`" },
+                    { "name": "last_fill_date", "expression": "`last_fill_date`" },
+                    { "name": "days_since_last_fill", "expression": "`days_since_last_fill`" },
+                    { "name": "pa_denial_count", "expression": "`pa_denial_count`" },
+                    { "name": "on_therapy", "expression": "`on_therapy`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  { "fieldName": "therapy_code", "displayName": "Therapy" },
+                  { "fieldName": "days_since_last_fill", "displayName": "Days since fill" },
+                  { "fieldName": "last_fill_date", "displayName": "Last fill" },
+                  { "fieldName": "pa_denial_count", "displayName": "PA denials" },
+                  { "fieldName": "on_therapy", "displayName": "On therapy" },
+                  { "fieldName": "patient_token", "displayName": "Patient token" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "At-Risk Patients — Outreach Priority List" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
