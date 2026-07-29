@@ -14,11 +14,10 @@ Two Databricks **AI/BI** (Lakeview) dashboards for the Gold lakehouse. Import af
 ## Setup in Databricks Free Edition
 
 1. Run **`notebooks/QUICKSTART_setup_and_run`** (creates Gold tables).
-2. Run **`notebooks/08_dashboard_views`** (creates `main.gold.v_dashboard_*` views).
-3. **New** → **Dashboard** (or **Import dashboard**).
-4. Import each `.lvdash.json` from this folder.
-5. When prompted, select your **SQL warehouse** (2X-Small on Free Edition).
-6. **Publish** to share (optional).
+2. Run **`notebooks/09_fix_dashboard_data`** if charts are empty (validates row counts + rebuilds views).
+3. **Start your SQL warehouse** (Dashboards need a running warehouse).
+4. **Import** each `.lvdash.json` (or **Replace dashboard** if re-importing).
+5. **Publish** to share (optional).
 
 ### Import path (UI)
 

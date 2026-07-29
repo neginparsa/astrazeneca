@@ -3,17 +3,17 @@
     {
       "displayName": "Executive KPIs",
       "name": "e7a1kpi1",
-      "query": "SELECT total_active_patients, total_paid_amount, therapy_count, avg_days_supply, latest_metric_date FROM main.gold.v_dashboard_kpis"
+      "query": "SELECT SUM(active_patients) AS total_active_patients, ROUND(SUM(total_paid_amount), 2) AS total_paid_amount, COUNT(DISTINCT therapy_code) AS therapy_count, ROUND(AVG(avg_days_supply), 1) AS avg_days_supply FROM main.gold.daily_therapy_metrics"
     },
     {
       "displayName": "Daily therapy trend",
       "name": "e7a2trnd",
-      "query": "SELECT metric_date, therapy_code, active_patients, total_paid_amount, avg_days_supply FROM main.gold.v_dashboard_daily_trend"
+      "query": "SELECT metric_date, therapy_code, active_patients, total_paid_amount, avg_days_supply FROM main.gold.daily_therapy_metrics ORDER BY metric_date, therapy_code"
     },
     {
       "displayName": "Therapy summary",
       "name": "e7a3summ",
-      "query": "SELECT therapy_code, patient_fills, paid_amount, avg_days_supply FROM main.gold.v_dashboard_therapy_summary ORDER BY paid_amount DESC"
+      "query": "SELECT therapy_code, SUM(active_patients) AS patient_fills, ROUND(SUM(total_paid_amount), 2) AS paid_amount, ROUND(AVG(avg_days_supply), 1) AS avg_days_supply FROM main.gold.daily_therapy_metrics GROUP BY therapy_code ORDER BY paid_amount DESC"
     }
   ],
   "pages": [
@@ -25,7 +25,7 @@
           "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
           "widget": {
             "name": "hdr00001",
-            "textbox_spec": "# Magnolia Pharma — Therapy Performance\nSingle trusted daily metrics from Gold lakehouse (main.gold)"
+            "textbox_spec": "# Magnolia Pharma — Therapy Performance"
           }
         },
         {
@@ -37,9 +37,9 @@
                 "name": "main_query",
                 "query": {
                   "datasetName": "e7a1kpi1",
-                  "disaggregated": false,
+                  "disaggregated": true,
                   "fields": [
-                    { "name": "sum(total_active_patients)", "expression": "SUM(`total_active_patients`)" }
+                    { "name": "total_active_patients", "expression": "`total_active_patients`" }
                   ]
                 }
               }
@@ -49,8 +49,8 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_active_patients)",
-                  "displayName": "Active patient fills (120d)"
+                  "fieldName": "total_active_patients",
+                  "displayName": "Active patient fills"
                 }
               },
               "frame": { "showTitle": true, "title": "Active Patients" }
@@ -66,9 +66,9 @@
                 "name": "main_query",
                 "query": {
                   "datasetName": "e7a1kpi1",
-                  "disaggregated": false,
+                  "disaggregated": true,
                   "fields": [
-                    { "name": "sum(total_paid_amount)", "expression": "SUM(`total_paid_amount`)" }
+                    { "name": "total_paid_amount", "expression": "`total_paid_amount`" }
                   ]
                 }
               }
@@ -78,8 +78,8 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "sum(total_paid_amount)",
-                  "displayName": "Total paid ($)"
+                  "fieldName": "total_paid_amount",
+                  "displayName": "Total paid"
                 }
               },
               "frame": { "showTitle": true, "title": "Total Paid Amount" }
@@ -95,9 +95,9 @@
                 "name": "main_query",
                 "query": {
                   "datasetName": "e7a1kpi1",
-                  "disaggregated": false,
+                  "disaggregated": true,
                   "fields": [
-                    { "name": "avg(avg_days_supply)", "expression": "AVG(`avg_days_supply`)" }
+                    { "name": "avg_days_supply", "expression": "`avg_days_supply`" }
                   ]
                 }
               }
@@ -107,7 +107,7 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "avg(avg_days_supply)",
+                  "fieldName": "avg_days_supply",
                   "displayName": "Avg days supply"
                 }
               },
@@ -124,10 +124,10 @@
                 "name": "main_query",
                 "query": {
                   "datasetName": "e7a2trnd",
-                  "disaggregated": false,
+                  "disaggregated": true,
                   "fields": [
                     { "name": "metric_date", "expression": "`metric_date`" },
-                    { "name": "sum(active_patients)", "expression": "SUM(`active_patients`)" },
+                    { "name": "active_patients", "expression": "`active_patients`" },
                     { "name": "therapy_code", "expression": "`therapy_code`" }
                   ]
                 }
@@ -143,7 +143,7 @@
                   "scale": { "type": "temporal" }
                 },
                 "y": {
-                  "fieldName": "sum(active_patients)",
+                  "fieldName": "active_patients",
                   "displayName": "Active patients",
                   "scale": { "type": "quantitative" }
                 },
@@ -155,7 +155,7 @@
                 }
               },
               "mark": {
-                "colors": ["#003865", "#830051", "#00843D", "#F0AB00", "#68D2DF", "#5B6770"]
+                "colors": ["#003865", "#830051", "#00843D", "#F0AB00"]
               },
               "frame": { "showTitle": true, "title": "Daily Active Patients by Therapy" }
             }
@@ -170,10 +170,10 @@
                 "name": "main_query",
                 "query": {
                   "datasetName": "e7a3summ",
-                  "disaggregated": false,
+                  "disaggregated": true,
                   "fields": [
                     { "name": "therapy_code", "expression": "`therapy_code`" },
-                    { "name": "sum(paid_amount)", "expression": "SUM(`paid_amount`)" }
+                    { "name": "paid_amount", "expression": "`paid_amount`" }
                   ]
                 }
               }
@@ -188,15 +188,13 @@
                   "scale": { "type": "categorical" }
                 },
                 "y": {
-                  "fieldName": "sum(paid_amount)",
-                  "displayName": "Paid amount ($)",
+                  "fieldName": "paid_amount",
+                  "displayName": "Paid amount",
                   "scale": { "type": "quantitative" }
                 },
                 "label": { "show": true }
               },
-              "mark": {
-                "colors": ["#830051", "#003865", "#00843D"]
-              },
+              "mark": { "colors": ["#830051", "#003865", "#00843D"] },
               "frame": { "showTitle": true, "title": "Paid Amount by Therapy" }
             }
           }
@@ -229,12 +227,12 @@
                 },
                 "y": {
                   "fieldName": "sum(total_paid_amount)",
-                  "displayName": "Total paid ($)",
+                  "displayName": "Total paid",
                   "scale": { "type": "quantitative" }
                 }
               },
               "mark": { "colors": ["#003865"] },
-              "frame": { "showTitle": true, "title": "Revenue Trend (All Therapies)" }
+              "frame": { "showTitle": true, "title": "Revenue Trend" }
             }
           }
         }
