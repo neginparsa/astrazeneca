@@ -1,7 +1,11 @@
 # Databricks notebook source
 # MAGIC %md
-# MAGIC # 10 — Dashboard data fix (run this if charts are empty)
-# MAGIC Creates **`main.gold`** demo data using SQL (same engine dashboards use) and validates queries.
+# MAGIC # 10 — Dashboard data fix (Python / Serverless only)
+# MAGIC
+# MAGIC **If you see:** `SQL warehouses only support executing SQL cells`  
+# MAGIC **Use instead:** **`10_dashboard_seed.sql`** (SQL notebook — works on SQL warehouse).
+# MAGIC
+# MAGIC This Python notebook requires **Serverless** compute (not SQL warehouse).
 
 # COMMAND ----------
 

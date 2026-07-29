@@ -2,11 +2,15 @@
 
 ## A. Run notebook 10 (required)
 
-1. Open **`notebooks/10_dashboard_seed_and_test`**
-2. **Serverless** → **Run all**
-3. Confirm output shows **7 rows** in `daily_therapy_metrics` and **6 rows** in `patient_journey`
+**Use the SQL notebook** (works on SQL warehouse):
 
-This loads **fixed demo data** into `main.gold` using SQL.
+1. Open **`notebooks/10_dashboard_seed.sql`**
+2. Attach your **SQL warehouse** (or Serverless)
+3. **Run all**
+
+**Do not** run `10_dashboard_seed_and_test.py` on a SQL warehouse — Python cells fail there.
+
+For Python notebooks (`QUICKSTART`, etc.) use **Serverless** only.
 
 ## B. Start SQL warehouse (required)
 
