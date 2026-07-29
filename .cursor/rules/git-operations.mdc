@@ -1,0 +1,14 @@
+---
+description: Allow git push/pull/commit when the user asks
+alwaysApply: true
+---
+
+# Git operations for this project
+
+When the user asks to push, pull, commit, or sync with GitHub:
+
+- Run git commands in `/Users/neginnickparsa/Projects/Databricks Magnolia`.
+- Remote is `git@github.com:neginparsa/astrazeneca.git` (SSH preferred after setup).
+- Do not embed PATs or tokens in commands or commit them.
+- Only create commits when the user explicitly requests a commit or push that includes new changes.
+- After a successful push, remind them to **Git → Pull** in Databricks Git folder `astra` if relevant.
