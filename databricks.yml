@@ -1,0 +1,29 @@
+bundle:
+  name: magnolia-pharma-lakehouse
+
+workspace:
+  host: https://adb-XXXXXXXXX.XX.azuredatabricks.net
+
+resources:
+  jobs:
+    magnolia_daily_refresh:
+      name: magnolia-daily-gold-refresh
+      tasks:
+        - task_key: gold_patient_journey
+          notebook_task:
+            notebook_path: ./notebooks/03_gold_patient_journey
+          job_cluster_key: photon_job
+      job_clusters:
+        - job_cluster_key: photon_job
+          new_cluster:
+            spark_version: 15.4.x-scala2.12
+            node_type_id: Standard_DS4_v2
+            num_workers: 2
+            runtime_engine: PHOTON
+            data_security_mode: USER_ISOLATION
+
+targets:
+  dev:
+    default: true
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/magnolia/dev
