@@ -1,0 +1,82 @@
+{
+  "datasets": [
+    {
+      "displayName": "Smoke test count",
+      "name": "smoke0001",
+      "query": "SELECT COUNT(*) AS row_count, SUM(active_patients) AS total_patients FROM main.gold.daily_therapy_metrics"
+    }
+  ],
+  "pages": [
+    {
+      "name": "c0ffee01",
+      "displayName": "Smoke Test",
+      "layout": [
+        {
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
+          "widget": {
+            "name": "txt00001",
+            "textbox_spec": "# Magnolia Smoke Test\nIf the counter below shows a number, your warehouse can read main.gold.daily_therapy_metrics."
+          }
+        },
+        {
+          "position": { "x": 0, "y": 1, "width": 3, "height": 3 },
+          "widget": {
+            "name": "cnt00001",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "smoke0001",
+                  "disaggregated": true,
+                  "fields": [
+                    { "name": "total_patients", "expression": "`total_patients`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "total_patients",
+                  "displayName": "Total patients"
+                }
+              },
+              "frame": { "showTitle": true, "title": "Should show 716" }
+            }
+          }
+        },
+        {
+          "position": { "x": 3, "y": 1, "width": 3, "height": 3 },
+          "widget": {
+            "name": "cnt00002",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "smoke0001",
+                  "disaggregated": true,
+                  "fields": [
+                    { "name": "row_count", "expression": "`row_count`" }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "row_count",
+                  "displayName": "Row count"
+                }
+              },
+              "frame": { "showTitle": true, "title": "Should show 7" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
