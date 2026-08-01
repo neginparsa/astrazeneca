@@ -48,7 +48,6 @@ for i in range(1, n_patients + 1):
                 paid_amount=round(random.uniform(500, 8500), 2),
                 therapy_code=therapy,
                 source_file="seed/bulk",
-                ingested_at=None,
             )
         )
 
