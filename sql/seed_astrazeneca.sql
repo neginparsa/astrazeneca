@@ -1,28 +1,12 @@
--- Databricks notebook source
--- MAGIC %md
--- MAGIC # 11 — AstraZeneca bulk seed (SQL warehouse)
--- MAGIC ~1,500 patients · ~18,000 claims · SQL cells only.
--- MAGIC Source: `sql/seed_astrazeneca.sql`
+-- AstraZeneca synthetic lakehouse seed (catalog: main)
+-- Used by notebooks/11_seed_lakehouse_data.sql and .py
 
--- COMMAND ----------
+CREATE SCHEMA IF NOT EXISTS {catalog}.bronze;
+CREATE SCHEMA IF NOT EXISTS {catalog}.silver;
+CREATE SCHEMA IF NOT EXISTS {catalog}.gold;
+CREATE SCHEMA IF NOT EXISTS {catalog}.ml;
 
-USE CATALOG main;
-
--- COMMAND ----------
-
-CREATE SCHEMA IF NOT EXISTS main.silver;
-
--- COMMAND ----------
-
-CREATE SCHEMA IF NOT EXISTS main.gold;
-
--- COMMAND ----------
-
-CREATE SCHEMA IF NOT EXISTS main.ml;
-
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.gold.az_product_dim AS
+CREATE OR REPLACE TABLE {catalog}.gold.az_product_dim AS
 SELECT * FROM VALUES
   ('AZ-TAG-40',  'Tagrisso',   'Oncology',       'osimertinib',           14500.00),
   ('AZ-IMF-500', 'Imfinzi',    'Oncology',       'durvalumab',            8900.00),
@@ -36,15 +20,13 @@ SELECT * FROM VALUES
   ('AZ-ULT-300', 'Ultomiris',  'Rare Disease',   'ravulizumab',           12500.00)
 AS t(therapy_code, brand_name, therapeutic_area, molecule, avg_wac_per_fill);
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.bronze.claims_raw AS
+CREATE OR REPLACE TABLE {catalog}.bronze.claims_raw AS
 WITH patients AS (
   SELECT CONCAT('AZ-PAT-', LPAD(CAST(id AS STRING), 5, '0')) AS patient_id
   FROM (SELECT EXPLODE(SEQUENCE(1, 1500)) AS id)
 ),
 fills AS (SELECT EXPLODE(SEQUENCE(0, 11)) AS fill_num),
-products AS (SELECT * FROM main.gold.az_product_dim)
+products AS (SELECT * FROM {catalog}.gold.az_product_dim)
 SELECT
   UUID() AS claim_id, p.patient_id,
   CAST(1000000000 + (HASH(p.patient_id) % 900000000) AS STRING) AS provider_npi,
@@ -62,9 +44,7 @@ SELECT
 FROM patients p CROSS JOIN fills f
 JOIN products pr ON ABS(HASH(p.patient_id, f.fill_num)) % 10 = ABS(HASH(pr.therapy_code)) % 10;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.bronze.specialty_rx_raw AS
+CREATE OR REPLACE TABLE {catalog}.bronze.specialty_rx_raw AS
 WITH patients AS (
   SELECT CONCAT('AZ-PAT-', LPAD(CAST(id AS STRING), 5, '0')) AS patient_id
   FROM (SELECT EXPLODE(SEQUENCE(1, 1500)) AS id)
@@ -78,12 +58,10 @@ SELECT UUID() AS rx_id, p.patient_id, pr.therapy_code, pr.brand_name,
     WHEN 3 THEN 'PRIOR_AUTH_HOLD' ELSE 'SHIPPED' END AS hub_status,
   'az/ace_hub/specialty_rx' AS source_file, CURRENT_TIMESTAMP() AS ingested_at
 FROM patients p CROSS JOIN ships s
-JOIN main.gold.az_product_dim pr ON ABS(HASH(p.patient_id)) % 10 = ABS(HASH(pr.therapy_code)) % 10
+JOIN {catalog}.gold.az_product_dim pr ON ABS(HASH(p.patient_id)) % 10 = ABS(HASH(pr.therapy_code)) % 10
 WHERE ABS(HASH(p.patient_id, s.ship_num)) % 4 != 0;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.bronze.prior_auth_raw AS
+CREATE OR REPLACE TABLE {catalog}.bronze.prior_auth_raw AS
 WITH patients AS (
   SELECT CONCAT('AZ-PAT-', LPAD(CAST(id AS STRING), 5, '0')) AS patient_id
   FROM (SELECT EXPLODE(SEQUENCE(1, 1500)) AS id) WHERE id % 2 = 0
@@ -95,11 +73,9 @@ SELECT UUID() AS auth_id, patient_id, pr.therapy_code, pr.brand_name,
   TIMESTAMP('2024-08-01') + (ABS(HASH(patient_id)) % 400) * INTERVAL 1 DAY AS submitted_at,
   TIMESTAMP('2024-08-10') + (ABS(HASH(patient_id)) % 400) * INTERVAL 1 DAY AS decided_at,
   'az/market_access/prior_auth' AS source_file, CURRENT_TIMESTAMP() AS ingested_at
-FROM patients JOIN main.gold.az_product_dim pr ON ABS(HASH(patient_id)) % 10 = ABS(HASH(pr.therapy_code)) % 10;
+FROM patients JOIN {catalog}.gold.az_product_dim pr ON ABS(HASH(patient_id)) % 10 = ABS(HASH(pr.therapy_code)) % 10;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.bronze.crm_raw AS
+CREATE OR REPLACE TABLE {catalog}.bronze.crm_raw AS
 WITH patients AS (
   SELECT CONCAT('AZ-PAT-', LPAD(CAST(id AS STRING), 5, '0')) AS patient_id
   FROM (SELECT EXPLODE(SEQUENCE(1, 1500)) AS id) WHERE id % 3 = 0
@@ -114,41 +90,33 @@ SELECT UUID() AS interaction_id, p.patient_id,
   'az/patient_support/crm' AS source_file, CURRENT_TIMESTAMP() AS ingested_at
 FROM patients p CROSS JOIN touch t;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.bronze.inventory_raw AS
+CREATE OR REPLACE TABLE {catalog}.bronze.inventory_raw AS
 SELECT CONCAT('SKU-', therapy_code) AS sku, therapy_code, brand_name,
   CASE ABS(HASH(therapy_code)) % 4 WHEN 0 THEN 'AZ-MCE-WILMINGTON' WHEN 1 THEN 'AZ-3PL-MEMPHIS' WHEN 2 THEN 'AZ-3PL-PHOENIX' ELSE 'AZ-CMO-IRELAND' END AS site_id,
   100 + (ABS(HASH(therapy_code)) % 900) AS on_hand, CURRENT_DATE() AS as_of_date,
   'az/supply_chain/inventory' AS source_file, CURRENT_TIMESTAMP() AS ingested_at
-FROM main.gold.az_product_dim;
+FROM {catalog}.gold.az_product_dim;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.silver.claims_enriched AS
+CREATE OR REPLACE TABLE {catalog}.silver.claims_enriched AS
 SELECT claim_id, SHA2(CAST(patient_id AS STRING), 256) AS patient_token,
   therapy_code, brand_name, therapeutic_area, molecule, fill_date, days_supply, paid_amount,
   SHA2(CONCAT('npi:', provider_npi), 256) AS provider_token, CURRENT_TIMESTAMP() AS updated_at
-FROM main.bronze.claims_raw;
+FROM {catalog}.bronze.claims_raw;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.silver.patient_events AS
+CREATE OR REPLACE TABLE {catalog}.silver.patient_events AS
 SELECT SHA2(CONCAT(claim_id, CAST(fill_date AS STRING), 'CLAIM'), 256) AS event_id,
   SHA2(CAST(patient_id AS STRING), 256) AS patient_token, 'CLAIM_FILL' AS event_type,
   therapy_code, brand_name, therapeutic_area, fill_date AS event_date,
   CAST(fill_date AS TIMESTAMP) AS event_ts,
   MAP('brand', brand_name, 'molecule', molecule, 'paid', CAST(paid_amount AS STRING)) AS detail,
   'az_specialty_pharmacy' AS source_system, CURRENT_TIMESTAMP() AS updated_at
-FROM main.bronze.claims_raw;
+FROM {catalog}.bronze.claims_raw;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.gold.patient_journey AS
+CREATE OR REPLACE TABLE {catalog}.gold.patient_journey AS
 WITH ranked AS (
   SELECT patient_token, therapy_code, brand_name, therapeutic_area, fill_date AS last_fill_date,
     ROW_NUMBER() OVER (PARTITION BY patient_token, therapy_code ORDER BY fill_date DESC) AS rn
-  FROM main.silver.claims_enriched
+  FROM {catalog}.silver.claims_enriched
 )
 SELECT patient_token, therapy_code, brand_name, therapeutic_area,
   DATE_SUB(last_fill_date, 400) AS journey_start, last_fill_date,
@@ -159,44 +127,25 @@ SELECT patient_token, therapy_code, brand_name, therapeutic_area,
   CURRENT_TIMESTAMP() AS journey_updated_at
 FROM ranked WHERE rn = 1;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.gold.daily_therapy_metrics AS
+CREATE OR REPLACE TABLE {catalog}.gold.daily_therapy_metrics AS
 SELECT fill_date AS metric_date, therapy_code, brand_name, therapeutic_area,
   COUNT(DISTINCT patient_token) AS active_patients,
   CAST(SUM(CASE WHEN ABS(HASH(patient_token, fill_date)) % 25 = 0 THEN 1 ELSE 0 END) AS BIGINT) AS new_starts,
   CAST(SUM(CASE WHEN ABS(HASH(patient_token, fill_date)) % 30 = 0 THEN 1 ELSE 0 END) AS BIGINT) AS discontinuations,
   AVG(days_supply) AS avg_days_supply, SUM(paid_amount) AS total_paid_amount, CURRENT_TIMESTAMP() AS computed_at
-FROM main.silver.claims_enriched
+FROM {catalog}.silver.claims_enriched
 GROUP BY fill_date, therapy_code, brand_name, therapeutic_area;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.gold.daily_franchise_metrics AS
+CREATE OR REPLACE TABLE {catalog}.gold.daily_franchise_metrics AS
 SELECT metric_date, therapeutic_area, SUM(active_patients) AS active_patients,
   SUM(new_starts) AS new_starts, SUM(discontinuations) AS discontinuations,
   SUM(total_paid_amount) AS total_paid_amount, COUNT(DISTINCT brand_name) AS brands_active
-FROM main.gold.daily_therapy_metrics GROUP BY metric_date, therapeutic_area;
+FROM {catalog}.gold.daily_therapy_metrics GROUP BY metric_date, therapeutic_area;
 
--- COMMAND ----------
-
-CREATE OR REPLACE TABLE main.ml.discontinuation_features AS
+CREATE OR REPLACE TABLE {catalog}.ml.discontinuation_features AS
 SELECT patient_token, therapy_code, brand_name, therapeutic_area, CURRENT_DATE() AS as_of_date,
   days_since_last_fill, CAST(4 + ABS(HASH(patient_token)) % 10 AS INT) AS fills_last_90d,
   pa_denial_count AS pa_denials_last_180d, hub_interactions_30d AS crm_outreach_last_30d,
   28.0 + (ABS(HASH(patient_token)) % 8) AS avg_days_supply_90d,
   CAST(NOT on_therapy AS INT) AS label_discontinued_within_30d
-FROM main.gold.patient_journey;
-
--- COMMAND ----------
-
-SELECT 'bronze.claims_raw' AS tbl, COUNT(*) AS rows FROM main.bronze.claims_raw
-UNION ALL SELECT 'gold.daily_therapy_metrics', COUNT(*) FROM main.gold.daily_therapy_metrics
-UNION ALL SELECT 'gold.patient_journey', COUNT(*) FROM main.gold.patient_journey;
-
--- COMMAND ----------
-
-SELECT brand_name, therapeutic_area, SUM(active_patients) AS fills, ROUND(SUM(total_paid_amount), 0) AS paid
-FROM main.gold.daily_therapy_metrics
-GROUP BY brand_name, therapeutic_area
-ORDER BY paid DESC;
+FROM {catalog}.gold.patient_journey;
