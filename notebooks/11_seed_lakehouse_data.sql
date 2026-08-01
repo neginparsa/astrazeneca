@@ -1,8 +1,7 @@
 -- Databricks notebook source
 -- MAGIC %md
 -- MAGIC # 11 — AstraZeneca bulk seed (SQL warehouse)
--- MAGIC ~1,500 patients · ~18,000 claims · SQL cells only.
--- MAGIC Source: `sql/seed_astrazeneca.sql`
+-- MAGIC ~1,500 patients · ~18,000 claims · **all SQL inline** (no external files).
 
 -- COMMAND ----------
 
