@@ -1,0 +1,122 @@
+{
+  "datasets": [
+    {
+      "displayName": "Franchise daily",
+      "name": "azfran01",
+      "query": "SELECT metric_date, therapeutic_area, active_patients, total_paid_amount, new_starts, discontinuations FROM main.gold.daily_franchise_metrics ORDER BY metric_date, therapeutic_area"
+    },
+    {
+      "displayName": "Product catalog",
+      "name": "azfran02",
+      "query": "SELECT brand_name, therapeutic_area, molecule, avg_wac_per_fill FROM main.gold.az_product_dim ORDER BY therapeutic_area, brand_name"
+    }
+  ],
+  "pages": [
+    {
+      "name": "azfranpg",
+      "displayName": "Franchise View",
+      "layout": [
+        {
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
+          "widget": {
+            "name": "azfh001",
+            "textbox_spec": "# AstraZeneca — Franchise & Portfolio View\n*Oncology · Respiratory · CVRM · Rare Disease*"
+          }
+        },
+        {
+          "position": { "x": 0, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "azfb001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azfran01",
+                "disaggregated": false,
+                "fields": [
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "sum(active_patients)", "expression": "SUM(`active_patients`)" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "therapeutic_area", "displayName": "Franchise", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "sum(active_patients)", "displayName": "Patient fills", "scale": { "type": "quantitative" } },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#830051", "#003865", "#00843D", "#F0AB00"] },
+              "frame": { "showTitle": true, "title": "Fills by Therapeutic Area" }
+            }
+          }
+        },
+        {
+          "position": { "x": 3, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "azfb002",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azfran01",
+                "disaggregated": false,
+                "fields": [
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "sum(total_paid_amount)", "expression": "SUM(`total_paid_amount`)" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "therapeutic_area", "displayName": "Franchise", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "sum(total_paid_amount)", "displayName": "Paid ($)", "scale": { "type": "quantitative" } },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#003865"] },
+              "frame": { "showTitle": true, "title": "Paid by Franchise" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 6, "width": 6, "height": 5 },
+          "widget": {
+            "name": "aztbl001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azfran02",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "brand_name", "expression": "`brand_name`" },
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "molecule", "expression": "`molecule`" },
+                  { "name": "avg_wac_per_fill", "expression": "`avg_wac_per_fill`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
+              "itemsPerPage": 15,
+              "paginationSize": "default",
+              "withRowNumber": false,
+              "encodings": {
+                "columns": [
+                  { "fieldName": "brand_name", "displayName": "Brand", "alignContent": "left", "displayAs": "string" },
+                  { "fieldName": "therapeutic_area", "displayName": "Franchise", "alignContent": "left", "displayAs": "string" },
+                  { "fieldName": "molecule", "displayName": "Molecule", "alignContent": "left", "displayAs": "string" },
+                  { "fieldName": "avg_wac_per_fill", "displayName": "Avg WAC/fill", "alignContent": "right", "displayAs": "number" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "AstraZeneca Product Catalog (Synthetic)" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

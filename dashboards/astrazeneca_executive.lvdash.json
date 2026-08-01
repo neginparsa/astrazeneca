@@ -1,0 +1,179 @@
+{
+  "datasets": [
+    {
+      "displayName": "AZ Executive KPIs",
+      "name": "az01kpi1",
+      "query": "SELECT SUM(active_patients) AS total_active_patients, ROUND(SUM(total_paid_amount), 0) AS total_paid_amount, COUNT(DISTINCT brand_name) AS brand_count, COUNT(DISTINCT therapeutic_area) AS franchise_count FROM main.gold.daily_therapy_metrics"
+    },
+    {
+      "displayName": "AZ brand trend",
+      "name": "az02trnd",
+      "query": "SELECT metric_date, brand_name, therapeutic_area, active_patients, total_paid_amount FROM main.gold.daily_therapy_metrics ORDER BY metric_date, brand_name"
+    },
+    {
+      "displayName": "AZ brand summary",
+      "name": "az03summ",
+      "query": "SELECT brand_name, therapeutic_area, SUM(active_patients) AS patient_fills, ROUND(SUM(total_paid_amount), 0) AS paid_amount FROM main.gold.daily_therapy_metrics GROUP BY brand_name, therapeutic_area ORDER BY paid_amount DESC"
+    }
+  ],
+  "pages": [
+    {
+      "name": "azexec01",
+      "displayName": "AstraZeneca Executive",
+      "layout": [
+        {
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
+          "widget": {
+            "name": "azhdr001",
+            "textbox_spec": "# AstraZeneca — Specialty Pharmacy Performance\n*Synthetic portfolio data · Oncology · Respiratory · CVRM · Rare Disease · Unity Catalog `main.gold`*"
+          }
+        },
+        {
+          "position": { "x": 0, "y": 1, "width": 2, "height": 2 },
+          "widget": {
+            "name": "azkpi001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az01kpi1",
+                "disaggregated": true,
+                "fields": [{ "name": "total_active_patients", "expression": "`total_active_patients`" }]
+              }
+            }],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "total_active_patients", "displayName": "Patient fills" } },
+              "frame": { "showTitle": true, "title": "Total Patient Fills" }
+            }
+          }
+        },
+        {
+          "position": { "x": 2, "y": 1, "width": 2, "height": 2 },
+          "widget": {
+            "name": "azkpi002",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az01kpi1",
+                "disaggregated": true,
+                "fields": [{ "name": "total_paid_amount", "expression": "`total_paid_amount`" }]
+              }
+            }],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "total_paid_amount", "displayName": "Paid ($)" } },
+              "frame": { "showTitle": true, "title": "Total Paid (WAC proxy)" }
+            }
+          }
+        },
+        {
+          "position": { "x": 4, "y": 1, "width": 2, "height": 2 },
+          "widget": {
+            "name": "azkpi003",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az01kpi1",
+                "disaggregated": true,
+                "fields": [{ "name": "brand_count", "expression": "`brand_count`" }]
+              }
+            }],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": { "value": { "fieldName": "brand_count", "displayName": "Brands" } },
+              "frame": { "showTitle": true, "title": "AZ Brands Active" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 3, "width": 4, "height": 5 },
+          "widget": {
+            "name": "azcht001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az02trnd",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "metric_date", "expression": "`metric_date`" },
+                  { "name": "active_patients", "expression": "`active_patients`" },
+                  { "name": "brand_name", "expression": "`brand_name`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "metric_date", "displayName": "Date", "scale": { "type": "temporal" } },
+                "y": { "fieldName": "active_patients", "displayName": "Fills", "scale": { "type": "quantitative" } },
+                "color": { "fieldName": "brand_name", "displayName": "Brand", "scale": { "type": "categorical" }, "legend": { "position": "bottom" } }
+              },
+              "mark": { "colors": ["#830051", "#003865", "#00843D", "#F0AB00", "#68D2DF", "#5B6770", "#AB4057", "#99DDB4"] },
+              "frame": { "showTitle": true, "title": "Daily Fills by AZ Brand (Tagrisso, Imfinzi, Farxiga…)" }
+            }
+          }
+        },
+        {
+          "position": { "x": 4, "y": 3, "width": 2, "height": 5 },
+          "widget": {
+            "name": "azcht002",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az03summ",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "brand_name", "expression": "`brand_name`" },
+                  { "name": "paid_amount", "expression": "`paid_amount`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "brand_name", "displayName": "Brand", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "paid_amount", "displayName": "Paid ($)", "scale": { "type": "quantitative" } },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#830051"] },
+              "frame": { "showTitle": true, "title": "Paid Amount by Brand" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 8, "width": 6, "height": 4 },
+          "widget": {
+            "name": "azcht003",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "az03summ",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "paid_amount", "expression": "`paid_amount`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "therapeutic_area", "displayName": "Franchise", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "paid_amount", "displayName": "Paid ($)", "scale": { "type": "quantitative" } },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#003865", "#830051", "#00843D", "#F0AB00"] },
+              "frame": { "showTitle": true, "title": "Revenue by Therapeutic Area (Oncology · Respiratory · CVRM · Rare Disease)" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

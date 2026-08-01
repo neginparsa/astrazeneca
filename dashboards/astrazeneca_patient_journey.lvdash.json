@@ -1,0 +1,127 @@
+{
+  "datasets": [
+    {
+      "displayName": "AZ journey by brand",
+      "name": "azjrny01",
+      "query": "SELECT brand_name, therapeutic_area, CAST(on_therapy AS STRING) AS on_therapy, COUNT(*) AS patient_count, ROUND(AVG(days_since_last_fill), 1) AS avg_days_since_fill FROM main.gold.patient_journey GROUP BY brand_name, therapeutic_area, on_therapy"
+    },
+    {
+      "displayName": "AZ at-risk by brand",
+      "name": "azjrny02",
+      "query": "SELECT brand_name, therapeutic_area, days_since_last_fill, pa_denial_count, hub_interactions_30d, on_therapy FROM main.gold.patient_journey WHERE NOT on_therapy OR days_since_last_fill > 30 ORDER BY days_since_last_fill DESC LIMIT 300"
+    }
+  ],
+  "pages": [
+    {
+      "name": "azjrny01",
+      "displayName": "Patient Journey",
+      "layout": [
+        {
+          "position": { "x": 0, "y": 0, "width": 6, "height": 1 },
+          "widget": {
+            "name": "azjh001",
+            "textbox_spec": "# AstraZeneca — Patient Journey & Adherence\n*Hub · Prior auth · Specialty pharmacy · Tokenized patients*"
+          }
+        },
+        {
+          "position": { "x": 0, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "azjb001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azjrny01",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "brand_name", "expression": "`brand_name`" },
+                  { "name": "patient_count", "expression": "`patient_count`" },
+                  { "name": "on_therapy", "expression": "`on_therapy`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "brand_name", "displayName": "Brand", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "patient_count", "displayName": "Patients", "scale": { "type": "quantitative" } },
+                "color": { "fieldName": "on_therapy", "displayName": "On therapy", "scale": { "type": "categorical" }, "legend": { "position": "bottom" } }
+              },
+              "mark": { "colors": ["#00843D", "#830051"] },
+              "frame": { "showTitle": true, "title": "On Therapy by Brand (Tagrisso, Farxiga, Fasenra…)" }
+            }
+          }
+        },
+        {
+          "position": { "x": 3, "y": 1, "width": 3, "height": 5 },
+          "widget": {
+            "name": "azjb002",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azjrny01",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "avg_days_since_fill", "expression": "`avg_days_since_fill`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": { "fieldName": "therapeutic_area", "displayName": "Franchise", "scale": { "type": "categorical" } },
+                "y": { "fieldName": "avg_days_since_fill", "displayName": "Avg days since fill", "scale": { "type": "quantitative" } },
+                "label": { "show": true }
+              },
+              "mark": { "colors": ["#F0AB00"] },
+              "frame": { "showTitle": true, "title": "Adherence Gap by Franchise" }
+            }
+          }
+        },
+        {
+          "position": { "x": 0, "y": 6, "width": 6, "height": 6 },
+          "widget": {
+            "name": "azjt001",
+            "queries": [{
+              "name": "main_query",
+              "query": {
+                "datasetName": "azjrny02",
+                "disaggregated": true,
+                "fields": [
+                  { "name": "brand_name", "expression": "`brand_name`" },
+                  { "name": "therapeutic_area", "expression": "`therapeutic_area`" },
+                  { "name": "days_since_last_fill", "expression": "`days_since_last_fill`" },
+                  { "name": "pa_denial_count", "expression": "`pa_denial_count`" },
+                  { "name": "hub_interactions_30d", "expression": "`hub_interactions_30d`" },
+                  { "name": "on_therapy", "expression": "`on_therapy`" }
+                ]
+              }
+            }],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "allowHTMLByDefault": false,
+              "condensed": true,
+              "itemsPerPage": 25,
+              "paginationSize": "default",
+              "withRowNumber": false,
+              "encodings": {
+                "columns": [
+                  { "fieldName": "brand_name", "displayName": "Brand", "alignContent": "left", "displayAs": "string" },
+                  { "fieldName": "therapeutic_area", "displayName": "Franchise", "alignContent": "left", "displayAs": "string" },
+                  { "fieldName": "days_since_last_fill", "displayName": "Days since fill", "alignContent": "right", "displayAs": "number" },
+                  { "fieldName": "pa_denial_count", "displayName": "PA denials", "alignContent": "right", "displayAs": "number" },
+                  { "fieldName": "hub_interactions_30d", "displayName": "Hub touches (30d)", "alignContent": "right", "displayAs": "number" },
+                  { "fieldName": "on_therapy", "displayName": "On therapy", "alignContent": "left", "displayAs": "string" }
+                ]
+              },
+              "frame": { "showTitle": true, "title": "At-Risk Patients — Outreach Priority (AZ brands)" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -68,7 +68,13 @@ flowchart LR
 
 ## Dashboards
 
-Import **`dashboards/*.lvdash.json`** after running notebooks **QUICKSTART** and **08**. See [dashboards/README.md](dashboards/README.md).
+**AstraZeneca-themed (recommended):** run **`11_seed_lakehouse_data.sql`**, then import:
+
+- `dashboards/astrazeneca_executive.lvdash.json`
+- `dashboards/astrazeneca_franchise.lvdash.json`
+- `dashboards/astrazeneca_patient_journey.lvdash.json`
+
+See [dashboards/README.md](dashboards/README.md). Synthetic data only — not affiliated with AstraZeneca.
 
 ## Notebooks (after QUICKSTART)
 
